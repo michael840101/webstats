@@ -1,2 +1,2 @@
 # webstats
-Internet Website Stats &amp; Facts
+Internet Website Stats and Facts
