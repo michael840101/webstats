@@ -11,7 +11,7 @@ Page generation statistic metric help users and business understand the insight 
 1.	Common Crawl(http://commoncrawl.org/the-data/): The Common Crawl dataset lives on Amazon S3 as part of the Amazon Public Datasets program, it contains petabytes of data collected over the last 7 years. Every month Common Crawl will release the previous month crawl corpus which contains raw web page data,meta-data and text extractions. For December 2018, the corpus has 20 TB GZIP crawl data of 3.2 billion web pages.
 
 ### Pipeline:
-![](scr/img/Pipeline.png)
+![](scr/img/DataPipeline.png)
 ### AWS Clusters:
 There are 4 main clusters as part of the pipeline:
 •	4 m4.large for Spark() cluster
@@ -48,4 +48,4 @@ The dashboard is created using Dash to search for the domain name for which you 
 
 # Links to my works:
 #### Google Slides: (https://bit.ly/2RI4ytR)
-#### Demo: (http://webstates.com)
+#### Demo: (http://webstates.co)
