@@ -43,40 +43,52 @@ schema = StructType([
 
 #read from parquet to df
 df_current_month = sqlContext\
-            .read.parquet("s3a://insightdemozhi/cc/*")
+            .read.parquet("s3a://insightdemozhi/cc-2018-12/*")
 df_previouse_month = sqlContext\
-            .read.parquet("s3a://insightdemozhi/cc_test/*")
+            .read.parquet("s3a://insightdemozhi/cc-2018-07/*")
 
 #create temp table from df
 df_current_month.createOrReplaceTempView("urls_curr_mon")
 df_previouse_month.createOrReplaceTempView("urls_pre_mon")
 
 #query for creating output df
-df_domain_url_total = sqlContext.sql("SELECT domain, count(url) as ct\
+df_domain_total_t = sqlContext.sql("SELECT domain, count(url) as url_total, SUM(cont_length) as total_content\
                         FROM urls_curr_mon \
                         GROUP BY domain")
+#df_domain_total=df_domain_total_t.cache()
 
-df_domain_url_increase = sqlContext.sql("SELECT domain, count(url)\
-                        FROM urls_curr_mon cm \
-                        WHERE cm.url NO IN \
-                        (SELECT url FROM urls_pre_mon)\
-                        GROUP BY domain )
+df_domain_url_increase = sqlContext.sql("SELECT dis_url.domain, COUNT(dis_url.url) as url_increased \
+                        FROM (SELECT c.domain, c.url FROM urls_curr_mon c LEFT JOIN urls_pre_mon ct on c.url=ct.url \
+                        WHERE ct.url is null) AS dis_url GROUP BY dis_url.domain")
 
-df_domain_url_decrease = sqlContext.sql("SELECT domain, count(url)\
-                        FROM urls_pre_mon pm \
-                        WHERE pm.url NO IN \
-                        (SELECT url FROM urls_curr_mon)\
-                         GROUP BY domain ))
+
+
+df_domain_url_decrease = sqlContext.sql("SELECT dis_url.domain, COUNT(dis_url.url) as url_decreased \
+                        FROM (SELECT c.domain, c.url FROM urls_pre_mon c LEFT JOIN urls_curr_mon ct on c.url=ct.url\
+                        WHERE ct.url is null) AS dis_url GROUP BY dis_url.domain")
+
+
+df_increse = df_domain_total_t.join(df_domain_url_increase, ["domain"])
+df_in_decrese=df_increse.join(df_domain_url_decrease,["domain"])
 
 #calculate rank for page counts using window functions
-ranked =  df_domain_url_total.withColumn(\
-  "ct_rank", dense_rank().over(Window.partitionBy("domain").orderBy(desc("ct"))))
+ranked =  df_in_decrese.withColumn(\
+  #"ct_rank", dense_rank().over(Window.partitionBy("domain").orderBy(desc("ct"))))
+  "pg_rank", dense_rank().over(Window.orderBy(desc("url_total"))))
+
+cl_ranked =  ranked.withColumn(\
+  "content_rank", dense_rank().over(Window.orderBy(desc("total_content"))))
 
 #Join df for the output table
 #Date
 
+output_df=cl_ranked.withColumn(\
+    "stats_date", current_date())
+
+#output_df.drop('total_content')
+#output_df.show()
 
 
 #Write the output data frame to PostgreSQL database
-df_output.write \
-         .jdbc(url=url_connect, table="cc_url", mode=mode, properties=properties)
+output_df.write \
+         .jdbc(url=url_connect, table="domains", mode=mode, properties=properties)

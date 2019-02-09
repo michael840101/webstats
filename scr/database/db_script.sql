@@ -4,13 +4,14 @@
 --CREATE MAIN DOMAIN TABLE
 CREATE  TABLE IF NOT EXISTS domains (
   domain character varying(128),
-  tld character varying(64),
   url_total int,
+  total_content bigint,
 	url_increased int,
 	url_decreased int,
-  total_content int,
-	lang_code_0 character varying(36),
-  lang_code_1 character varying(36),
+  pg_rank int,
+  content_rank int,
+	--lang_code_0 character varying(36),
+  --lang_code_1 character varying(36),
   stats_date timestamp
 );
 
