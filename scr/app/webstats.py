@@ -30,77 +30,105 @@ connection_parameters = {
 
 conn = psycopg2.connect(**connection_parameters)
 cur = conn.cursor()
-cur.execute("SELECT domain, url_increased,url_decreased  FROM domains \
-             LIMIT 10"
+cur.execute("SELECT domain, url_total, url_increased,url_decreased  FROM domains_curr \
+             ORDER BY pg_rank LIMIT 10"
             )
 url_ct = cur.fetchall()
-
-# print(url_ct)
-# cur.execute("SELECT domain FROM cc_url")
-# domain1=cur.fetchall()
-
 
 xData = [ct[0] for ct in url_ct]
 
 yData = [ct[1] for ct in url_ct]
 
-y2Data=[ct[2] for ct in url_ct]
+y2Data = [ct[2] for ct in url_ct]
 
+y3Data = [ct[3] for ct in url_ct]
+
+
+#Structure of the html layout
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div(children=[
-    html.H1(children='WEBSTATS'),
-    html.H2(children='Page Creation Metric Cross Web.'),
-    html.Div(dcc.Input(id='input-box', type='text')),
-    html.Button('Submit', id='button'),
-    html.Div(id='output-container-button',
-             children='Enter a domain name and press submit for details'),
-    html.Div(children='The rank of sites are based on content volume.'),
+app.layout = \
+    html.Div(style={
+             'background-image': 'url("/assets/floor-1.jpg")',
+             'background-color': 'rgb(230, 243, 247)', 'margin':'10px 80px 15px 80px'},
+    children=[
+    #html.Header(children='Webstats'),
+    html.H1(children='WebStats', style={'textAlign': 'center',
+            'font-family': 'Verdana', 'color': 'rgb(40, 34, 104)'}),
+
+
+    html.Div(id='output-container-button',style={'textAlign': 'left', 'font-size':'18',
+            'font-family': 'Verdana', 'color': 'rgb(40, 34, 104)','margin':'0 0 0 200px'},
+             children=['Find Website Page Statistics ',
+             html.Span(dcc.Input(id='input-box', type='text')),
+             html.Button('Find', id='button',style={'textAlign': 'right','font-size':'18','margin':'10px 0 10px 0'})
+             ]
+             ),
     dcc.Graph(id='web-active-graph',
               figure=go.Figure(data=[go.Bar(x=xData, y=yData,
-              name='Page created',
-              marker=go.bar.Marker(color='rgb(55, 83, 109)')),
-              go.Bar(x=xData, y=y2Data, name='Page deleted',
+              name='Total pages',
+              marker=go.bar.Marker(color='rgb(161, 186, 184)')),
+              go.Bar(x=xData, y=y2Data, name='Pages created',
+              marker=go.bar.Marker(color='rgb(161, 193, 145)')),
+              go.Bar(x=xData, y=y3Data, name='Pages deleted',
               marker=go.bar.Marker(color='rgb(232, 117, 85)'))],
-              layout=go.Layout(title='Top 1o most high volume domains',
-              showlegend=True, legend=go.layout.Legend(x=0, y=1.0),
-              margin=go.layout.Margin(l=40, r=0, t=40, b=30)))),
+              layout=go.Layout(title='Top 10 domains by page volume '
+              , showlegend=True, legend=go.layout.Legend(x=0, y=1.0),
+              margin=go.layout.Margin(l=20, r=20, t=120, b=60)))),
+    html.Footer(children='Copyright @ 2019 Zhiqin Chen All rights reserved',style={'textAlign': 'center', 'font-family': 'Verdana',
+    'font-size':'10', 'color': 'rgb(40, 34, 104)'})
     ])
 
 
 # Controller functions for the call back
 
-@app.callback(dash.dependencies.Output('web-active-graph',
-              'figure'), [dash.dependencies.Input('button', 'n_clicks'
-              )], [dash.dependencies.State('input-box', 'value')])
+@app.callback(dash.dependencies.Output('web-active-graph', 'figure'),
+              [dash.dependencies.Input('button', 'n_clicks')],
+              [dash.dependencies.State('input-box', 'value')])
 def update_figure(n_clicks, value):
 
-    SQL = "SELECT domain, url_total, url_increased,url_decreased FROM domains \
+    SQL = \
+        "SELECT domain, url_total, url_increased,url_decreased,pg_rank FROM domains_curr \
             WHERE domain= (%s);"
-    print (value)
-    input_data=(value,)
+    SQL_1 = \
+        "SELECT domain, url_total, url_increased,url_decreased,pg_rank FROM domains \
+            WHERE domain= (%s);"
+    print value
+    input_data = (value, )
     cur = conn.cursor()
     cur.execute(SQL, input_data)
     url_ct = cur.fetchall()
-    print (url_ct)
-    dn=(url_ct[0][0],)
-    url_tt=(url_ct[0][1],)
-    url_in=(url_ct[0][2],)
-    url_de=(url_ct[0][3],)
-    figure_single=go.Figure(data=[go.Bar(x=dn, y=url_tt,
-    name='Total Page',
-    marker=go.bar.Marker(color='rgb(128, 129, 132)')),
-    go.Bar(x=dn, y=url_in, name='Page created',
-    marker=go.bar.Marker(color='rgb(55, 83, 109)')),
-    go.Bar(x=dn, y=url_de, name='Page deleted',
-    marker=go.bar.Marker(color='rgb(232, 117, 85)'))],
-    layout=go.Layout(title='Monthly Page Creation/Deletion Metrics',
-    showlegend=True, legend=go.layout.Legend(x=0, y=1.0),
-    margin=go.layout.Margin(l=40, r=0, t=40, b=30)))
+    print url_ct
+    cur_1 = conn.cursor()
+    cur_1.execute(SQL_1, input_data)
+    url_ct_quater = cur_1.fetchall()
+
+    dn = ('Jan 2019', 'Q4 2018')
+    url_tt = (url_ct_quater[0][1], url_ct[0][1] )
+    url_in = (url_ct_quater[0][2], url_ct[0][2] )
+    url_de = (url_ct_quater[0][3], url_ct[0][3] )
+    pg_rk = (url_ct_quater[0][4],  url_ct[0][4] )
+
+    figure_single = go.Figure(data=[go.Bar(x=dn, y=url_tt,
+                              name='Total Pages' + '(Rank '
+                              + str(pg_rk[1]) + '*)', width=0.15,
+                              marker=go.bar.Marker(color='rgb(161, 186, 184)'
+                              )), go.Bar(x=dn, y=url_in,
+                              name='Pages created', width=0.15,
+                              marker=go.bar.Marker(color='rgb(161, 193, 145)'
+                              )), go.Bar(x=dn, y=url_de,
+                              name='Pages deleted', width=0.15,
+                              marker=go.bar.Marker(color='rgb(232, 117, 85)'
+                              ))],
+                              layout=go.Layout(title= 'Page Generation Metric Of '
+                               + str(value), showlegend=True,
+                              legend=go.layout.Legend(x=0, y=1.0),
+                              margin=go.layout.Margin(l=40, r=40,
+                              t=120, b=60)))
     return figure_single
 
-
+#run the server
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', debug=True)

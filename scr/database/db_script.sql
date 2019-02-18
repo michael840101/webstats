@@ -10,8 +10,8 @@ CREATE  TABLE IF NOT EXISTS domains (
 	url_decreased int,
   pg_rank int,
   content_rank int,
-	--lang_code_0 character varying(36),
-  --lang_code_1 character varying(36),
+	lang_code_0 character varying(36),
+  lang_code_1 character varying(36),
   stats_date timestamp
 );
 

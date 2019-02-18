@@ -1,6 +1,6 @@
 #!/bin/bash
-#for i in $(seq 299 $END); do
-for i in $(seq 0 1 9); do
+for i in $(seq 299 $END); do
+#for i in $(seq 0 1 9); do
  if [ $i -lt 99 ]
  then
    echo $i;
@@ -23,13 +23,13 @@ for i in $(seq 0 1 9); do
      hdfs dfs -copyFromLocal ./"${STEM}" $dtdir
      now=$(date +"%T")
      echo "Current time : $now"
-     #run the spark job
+     #run the spark parser job
      spark-submit --name url-parser\
       --master spark://ec2-18-207-73-113.compute-1.amazonaws.com:7077\
       --executor-memory 6G \
       --driver-memory 6G\
       --executor-cores 6\
-        test_url_collecter.py $dtdir $s3uri
+        cc_url_collector.py $dtdir $s3uri
       now=$(date +"%T")
       echo "Current time : $now"
      hdfs dfs -rm $dtdir
@@ -41,3 +41,12 @@ for i in $(seq 0 1 9); do
  fi
 
 done
+
+#run spark aggregation job
+spark-submit --name url-aggregator\
+ --master spark://ec2-18-207-73-113.compute-1.amazonaws.com:7077\
+ --executor-memory 6G \
+ --driver-memory 6G\
+ --executor-cores 6\
+ ----packages org.postgresql:postgresql:42.2.5\
+   cc_url_aggregator.py
