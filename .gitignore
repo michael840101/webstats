@@ -1,0 +1,11 @@
+#Basict git ignore file for restricting credential infos to be commited by accident
+**/*.properties
+**/*.ini
+**/*.config
+**/*.props
+**/*.gz
+**/*.log
+**/spark-warehouse
+**/test
+**/input
+**/metastore_db
