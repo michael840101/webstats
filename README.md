@@ -14,9 +14,13 @@ Page generation statistic metric help users and business understand the insight 
 ![](src/img/DataPipeline.png)
 ### AWS Clusters:
 There are 4 main clusters as part of the pipeline:
+
 •	4 m4.large for Spark() cluster
+
 •	4 m4.large for second Spark() cluster
+
 •	2 m4.large for PostgreSQL() database
+
 •	1 m4.large for Apache Web Application server
 
 ## Layers of the Pipeline:
