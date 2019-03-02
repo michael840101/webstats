@@ -13,15 +13,18 @@ from dash.dependencies import Input, Output
 
 db_uer = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASS')
+url_connect = os.environ.get('URL_CONNECT')
+host = os.environ.get('DB_HOST')
+db_schema= os.environ.get('DB_SCHEMA')
+
 mode = 'append'
-url_connect = \
-    'jdbc:postgresql://ec2-3-92-151-139.compute-1.amazonaws.com:5432/cc_dev'
+
 properties = {'user': db_uer, 'password': db_password,
               'driver': 'org.postgresql.Driver'}
 
 connection_parameters = {
-    'host': 'ec2-3-92-151-139.compute-1.amazonaws.com',
-    'database': 'cc_dev',
+    'host': host,
+    'database': db_schema,
     'user': db_uer,
     'password': db_password,
     }
@@ -95,12 +98,10 @@ def update_figure(n_clicks, value):
     SQL_1 = \
         "SELECT domain, url_total, url_increased,url_decreased,pg_rank FROM domains \
             WHERE domain= (%s);"
-    print value
     input_data = (value, )
     cur = conn.cursor()
     cur.execute(SQL, input_data)
     url_ct = cur.fetchall()
-    print url_ct
     cur_1 = conn.cursor()
     cur_1.execute(SQL_1, input_data)
     url_ct_quater = cur_1.fetchall()

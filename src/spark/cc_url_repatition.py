@@ -20,19 +20,15 @@ sc._jsc.hadoopConfiguration().set('fs.s3n.awsSecretAccessKey',awsSecretAccessKey
 sc._jsc.hadoopConfiguration().set('fs.s3.endpoint','s3.us-east-1.amazonaws.com')
 sc._jsc.hadoopConfiguration().set('fs.s3.impl','org.apache.hadoop.fs.s3native.NativeS3FileSystem')
 
-#PostgreSQL connection setting
-db_uer=os.environ.get('DB_USER')
-db_password=os.environ.get('DB_PASS')
-mode = "append"
-url_connect = "jdbc:postgresql://ec2-3-92-151-139.compute-1.amazonaws.com:5432/cc_dev"
-properties = {"user": db_uer,"password": db_password,"driver": "org.postgresql.Driver"}
-
-
+#taking input arguments from command line
+hdfs_path = str(sys.argv[1])
+s3_path = str(sys.argv[2])
+repa_table = str(sys.argv[3])
 
 
 #read from parquet to df
 current_month0 = sqlContext\
-           .read.parquet("s3a://insightdemozhi/cc-2019-01/*")
+           .read.parquet(s3_path)
 
 #create temp table from df
 current_month0.createOrReplaceTempView("urls_curr_mon")
@@ -43,4 +39,4 @@ split_col = split(df_current_month0['domain'], '')
 
 df_current_month0_repa=df_current_month0.withColumn("domainFirst",split_col.getItem(0))
 df_current_month0_repa.write.partitionBy("domainFirst").format('parquet')\
-                    .mode('append').option('path', "hdfs://ec2-3-93-221-130.compute-1.amazonaws.com:9000/user/cc_repa_201901/").saveAsTable('urls_repa_201901')
+                    .mode('append').option('path', hdfs_path).saveAsTable(repa_table)

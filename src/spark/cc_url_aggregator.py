@@ -31,9 +31,12 @@ sc._jsc.hadoopConfiguration().set('fs.s3.impl',
 
 db_uer = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASS')
+url_connect = os.environ.get('URL_CONNECT')
+host = os.environ.get('DB_HOST')
+db_schema= os.environ.get('DB_SCHEMA')
+
 mode = 'append'
-url_connect = \
-    'jdbc:postgresql://ec2-3-92-151-139.compute-1.amazonaws.com:5432/cc_dev'
+
 properties = {'user': db_uer, 'password': db_password,
               'driver': 'org.postgresql.Driver'}
 
