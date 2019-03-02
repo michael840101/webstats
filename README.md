@@ -8,7 +8,7 @@ Websites and web pages created and faded in tremendous amounts everyday.
 Page generation statistic metric help users and business understand the insight of global web structure and content distribution trend.Currently there is no public resource providing such information in details.This is what I achieved during my project which provides a web interface that takes a domain name and visualize monthly web page creation and deletion statistic in graph.
 
 ### Data Sources:
-1.	Common Crawl(http://commoncrawl.org/the-data/): The Common Crawl dataset lives on Amazon S3 as part of the Amazon Public Datasets program, it contains petabytes of data collected over the last 7 years. Every month Common Crawl will release the previous month crawl corpus which contains raw web page data,meta-data and text extractions. For December 2018, the corpus has 20 TB GZIP crawl data of 3.2 billion web pages.
+	Common Crawl(http://commoncrawl.org/the-data/): The Common Crawl dataset lives on Amazon S3 as part of the Amazon Public Datasets program, it contains petabytes of data collected over the last 7 years. Every month Common Crawl will release the previous month crawl corpus which contains raw web page data,meta-data and text extractions. For December 2018, the corpus has 20 TB GZIP crawl data of 3.2 billion web pages.
 
 ### Pipeline:
 ![](src/img/DataPipeline.png)
