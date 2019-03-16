@@ -49,6 +49,22 @@ PostgreSQL: The aggregated data from Spark is kept in three normalized tables(Do
 ## 4.	UI Layer:
 The dashboard is created using Dash to search for the domain name for which you can look at the visualization of page creation metric and geographic details for the domain.
 
+#### Running the Code:
+Set up Postgres DB in the DB cluster and  run table setup:
+```bash
+ ./db_script.sql
+```
+
+SSH into the spark cluster master:
+```bash
+run_spark_jobs.sh
+```
+
+SSH into the app server and run the gunicorn with NGIX
+```bash
+gunicorn -b 0.0.0.0:80 webstates:app --access-logfile .log/access.log --error-logfile .log/general.log
+```
+
 # Links to my works:
 #### Google Slides: (https://bit.ly/2RI4ytR)
 #### Demo: (http://webstates.co)
