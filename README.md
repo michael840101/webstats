@@ -49,7 +49,7 @@ PostgreSQL: The aggregated data from Spark is kept in three normalized tables(Do
 ## 4.	UI Layer:
 The dashboard is created using Dash to search for the domain name for which you can look at the visualization of page creation metric and geographic details for the domain.
 
-#### Running the Code:
+## Running the Code:
 Set up Postgres DB in the DB cluster and  run table setup:
 ```bash
  ./db_script.sql
