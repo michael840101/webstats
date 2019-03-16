@@ -1,4 +1,9 @@
-# utf-8
+"""
+One of main run script of the pipeline. It parses commoncrawl's monthly crawl data
+to structure dataset includes urls, domain, content related metrics
+It includes a main function that is used in spark submit.
+"""
+
 import os
 import sys
 import json
@@ -7,25 +12,6 @@ from pyspark.sql import SQLContext, SparkSession
 from pyspark.sql.types import *
 from datetime import datetime
 
-# Creating Spark Context and SQL Context Objects
-
-conf = SparkConf()
-sc = SparkContext(conf=conf)
-sqlContext = SQLContext(sparkContext=sc)
-
-# Set the Credential Keys for AWS S3 Connection
-
-awsAccessKeyId = os.environ.get('AWS_ACCESS_KEY_ID')
-awsSecretAccessKey = os.environ.get('AWS_SECRET_ACCESS_KEY')
-sc._jsc.hadoopConfiguration().set('fs.s3n.awsAccessKeyId',
-                                  awsAccessKeyId)
-sc._jsc.hadoopConfiguration().set('fs.s3n.awsSecretAccessKey',
-                                  awsSecretAccessKey)
-sc._jsc.hadoopConfiguration().set('fs.s3.endpoint',
-                                  's3.us-east-1.amazonaws.com')
-sc._jsc.hadoopConfiguration().set('fs.s3.impl',
-                                  'org.apache.hadoop.fs.s3native.NativeS3FileSystem'
-                                  )
 
 # reconstract json structure
 def get_json(fields_1):
@@ -74,38 +60,75 @@ def parse_fields(line):
     (f0, f1) = (fields[0], fields[1])
     return (f0, f1)
 
-#taking input arguments from command line
-hdfs_path = str(sys.argv[1])
-s3_path = str(sys.argv[2])
-file_uri = hdfs_path
-output_path = s3_path
 
-#read file through spark Context
-lines = sc.textFile(file_uri)
 
-# parsing text data to rdd for output
-urls = lines.map(parse_fields).map(lambda f: (parse_json(f[1]),
-                                   parse_dom(f[0]))).map(lambda pair: (
-        pair[0][0],
-        pair[0][1],
-        pair[0][3],
-        pair[1][0],
-        pair[1][1],
-        pair[0][2],
-        pair[1][2],
-        ))
+############################################################################
+# The main function that take crawl file from input  path(file_uri)
+# do the parsing jobs and save the structured output dataframe in
+# the directory of output_path
+############################################################################
+def main(sc, file_uri, output_path):
 
-# Construct schema for output  dataframe
-schema = StructType([
-    StructField('url', StringType(), True),
-    StructField('mime', StringType(), True),
-    StructField('cont_length', StringType(), True),
-    StructField('domain', StringType(), True),
-    StructField('tld', StringType(), True),
-    StructField('language', StringType(), True),
-    StructField('date_time', StringType(), True),
-    ])
+    # Creating SQL Context Objects from Spark Context
+    sqlContext = SQLContext(sparkContext=sc)
 
-# Save the df into s3 as table in parquet
-sqlContext.createDataFrame(urls, schema=schema).write.format('parquet'
-        ).mode('append').option('path', output_path).saveAsTable('urls')
+    #read file through spark Context
+    lines = sc.textFile(file_uri)
+
+    # parsing text data to rdd for output
+    urls = lines.map(parse_fields).map(lambda f: (parse_json(f[1]),
+                                       parse_dom(f[0]))).map(lambda pair: (
+            pair[0][0],
+            pair[0][1],
+            pair[0][3],
+            pair[1][0],
+            pair[1][1],
+            pair[0][2],
+            pair[1][2],
+            ))
+
+    # Construct schema for output  dataframe
+    schema = StructType([
+        StructField('url', StringType(), True),
+        StructField('mime', StringType(), True),
+        StructField('cont_length', StringType(), True),
+        StructField('domain', StringType(), True),
+        StructField('tld', StringType(), True),
+        StructField('language', StringType(), True),
+        StructField('date_time', StringType(), True),
+        ])
+
+    # Save the df into s3 as table in parquet
+    sqlContext.createDataFrame(urls, schema=schema).write.format('parquet'
+            ).mode('append').option('path', output_path).saveAsTable('urls')
+
+
+######################################################################################
+# main function that run the urls repartition spark jobs once it's excuted by spark submit
+######################################################################################
+if __name__ == '__main__':
+
+    # Creating Spark Context and SQL Context Objects
+    conf = SparkConf()
+    sc = SparkContext(conf=conf)
+
+    # Set the Credential Keys for AWS S3 Connection
+    awsAccessKeyId = os.environ.get('AWS_ACCESS_KEY_ID')
+    awsSecretAccessKey = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    sc._jsc.hadoopConfiguration().set('fs.s3n.awsAccessKeyId',
+                                      awsAccessKeyId)
+    sc._jsc.hadoopConfiguration().set('fs.s3n.awsSecretAccessKey',
+                                      awsSecretAccessKey)
+    sc._jsc.hadoopConfiguration().set('fs.s3.endpoint',
+                                      's3.us-east-1.amazonaws.com')
+    sc._jsc.hadoopConfiguration().set('fs.s3.impl',
+                                      'org.apache.hadoop.fs.s3native.NativeS3FileSystem'
+                                      )
+    #taking input arguments from command line
+    hdfs_path = str(sys.argv[1])
+    s3_path = str(sys.argv[2])
+    file_uri = hdfs_path
+    output_path = s3_path
+    
+    # execute the main function jobs
+    main(sc, file_uri, output_path)
