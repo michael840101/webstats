@@ -11,10 +11,15 @@ from pyspark.sql.types import *
 from boto.s3.key import Key
 from datetime import datetime
 
-############################################################################
-# The function that  read parquet from s3 as dataframe and repartitioned it
-############################################################################
+
 def data_repartition(sqlContext,  s3_path):
+    """
+    The function that  read parquet from s3 as dataframe and repartitioned it
+    :param sqlContext: The sqlContext obj from sparkContext session
+    :param s3_path: The string that dictates the uri of current month urls data in s3
+
+    :return: repartitioned dataframe
+    """
     #read from parquet file in s3 into spark df
     current_month0 = sqlContext\
                .read.parquet(s3_path)
@@ -31,10 +36,16 @@ def data_repartition(sqlContext,  s3_path):
 
     return df_current_month0_repa
 
-############################################################################
-# The function that save repartitioned dataframe as parquet in spark cluster
-############################################################################
+
 def save_output_df(output_df, hdfs_path, repa_table):
+    """
+    The function that save repartitioned dataframe as parquet in spark cluster
+    :param output_df: The output dataframe return from data_repartition()
+    :param hdfs_path: The string of hdfs local path
+    :param repa_table: The string that dictates the table name for the repartitioned df
+    
+    :return:
+    """
     #Write the df back to hdfs as parquet file by using the partitionBy first letter of domain name
     output_df.write.partitionBy("domainFirst").format('parquet')\
                         .mode('append').option('path', hdfs_path).saveAsTable(repa_table)

@@ -15,11 +15,17 @@ from boto.s3.key import Key
 from datetime import datetime
 
 
-############################################################################
-# this function takes the input directory path of repartitioned url dataset(parquet)
-# and create temp view of the current and previous month url for aggregation
-############################################################################
+
 def create_urls_temp_view(sqlContext, s3_curr_month, s3_past_month):
+    """
+    this function takes the input directory path of repartitioned url dataset(parquet)
+    and create temp view of the current and previous month url for aggregation
+    :param sqlContext: The sqlContext obj from sparkContext session
+    :param s3_curr_month: The string that dictates the uri of current month urls data in s3
+    :param s3_past_month: The string that dictates the uri of previous month urls data in s3
+    
+    :return:
+    """
     # read from parquet to df
     df_current_month = \
         sqlContext.read.parquet(s3_curr_month)
@@ -32,11 +38,15 @@ def create_urls_temp_view(sqlContext, s3_curr_month, s3_past_month):
 
 
 
-############################################################################
-# this function takes the input directory path of repartitioned url dataset(parquet)
-# and create temp view of the current and previous month url for aggregation
-############################################################################
+
 def aggregate_url_to_domain(sqlContext):
+    """
+    this function takes the input directory path of repartitioned url dataset(parquet)
+    and create temp view of the current and previous month url for aggregation
+    :param sqlContext: The sqlContext obj from sparkContext session
+
+    :return: concreated output dataframe with all the columnes
+    """
     # query for creating output df
     # query for calculating total web pages, content length for each domian
     df_domain_total_t = \
@@ -74,10 +84,17 @@ def aggregate_url_to_domain(sqlContext):
     return output_df
 
 
-############################################################################
-# The function that save pre-calculated dataframe into postgresql
-############################################################################
+
 def save_output_df(output_df, url_connect, mode, properties):
+    """
+    The function that save pre-calculated dataframe into postgresql
+    :param output_df: The output dataframe return from aggregate_url_to_domain()
+    :param url_connect: The string of postgressql db HOST
+    :param mode: The string that dictates the write mode
+    :param properties: The dictionary that dictates user and pass info for db connection
+
+    :return:
+    """
     output_df.write.jdbc(url=url_connect, table='domains', mode=mode,
                          properties=properties)
 

@@ -12,13 +12,22 @@ from pyspark.sql import SQLContext, SparkSession
 from pyspark.sql.types import *
 from datetime import datetime
 
-
-# reconstract json structure
 def get_json(fields_1):
+    """
+    The function that reconstract json objects tructure
+    :param fields_1: The string that contains semi-json structure
+
+    :return: structured json objects
+    """
     return ast.literal_eval('{' + fields_1)
 
-# Parsing json data to tuple
 def parse_json(fields_1):
+    """
+    The function that parsing json data to tuple
+    :param fields_1: The string that contains json structure
+
+    :return: tuple of page statistic elements lead by url
+    """
     try:
         json_data = json.loads('{' + fields_1)
         mime = json_data['mime']
@@ -38,8 +47,13 @@ def parse_json(fields_1):
     except:
         continue
 
-# Parse header of Json file to tuple
 def parse_dom(f_0):
+    """
+    The function that parse header of Json Obj to domain and tld
+    :param f_0: The string that contains json header
+
+    :return: tuple of domains elements lead by domain name
+    """
     try:
         parts = f_0.split()
         date = parts[1]
@@ -54,21 +68,29 @@ def parse_dom(f_0):
     except:
         continue
 
-#separate header and json content
 def parse_fields(line):
+    """
+    The function that separate header and json content
+    :param line: The string that contains commoncrawl raw file
+
+    :return: tuple of header string and semi-josn string
+    """
     fields = line.split('{')
     (f0, f1) = (fields[0], fields[1])
     return (f0, f1)
 
 
-
-############################################################################
-# The main function that take crawl file from input  path(file_uri)
-# do the parsing jobs and save the structured output dataframe in
-# the directory of output_path
-############################################################################
 def main(sc, file_uri, output_path):
+    """
+    The main function that take crawl file from input  path(file_uri)
+    do the parsing jobs and save the structured output dataframe in
+    the directory of output_path
+    :param sc: The sparkContext obj from Spark session
+    :param file_uri: The string that dictates the uri of commoncrawl raw data in s3
+    :param output_path: The string that dictates the uri of parsed dataset to be saved in s3
 
+    :return:
+    """
     # Creating SQL Context Objects from Spark Context
     sqlContext = SQLContext(sparkContext=sc)
 
@@ -103,6 +125,7 @@ def main(sc, file_uri, output_path):
             ).mode('append').option('path', output_path).saveAsTable('urls')
 
 
+
 ######################################################################################
 # main function that run the urls repartition spark jobs once it's excuted by spark submit
 ######################################################################################
@@ -129,6 +152,6 @@ if __name__ == '__main__':
     s3_path = str(sys.argv[2])
     file_uri = hdfs_path
     output_path = s3_path
-    
+
     # execute the main function jobs
     main(sc, file_uri, output_path)
