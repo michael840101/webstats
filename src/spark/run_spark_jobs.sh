@@ -1,4 +1,6 @@
 #!/bin/bash
+# run the data ingestion and extraction jobs parallelly by calling
+# cc_url_collector.py spark jobs
 for i in $(seq 299 $END); do
 #for i in $(seq 0 1 9); do
  if [ $i -lt 99 ]
@@ -49,4 +51,4 @@ spark-submit --name url-aggregator\
  --driver-memory 6G\
  --executor-cores 6\
  ----packages org.postgresql:postgresql:42.2.5\
-   cc_url_aggregator.py
+   cc_url_aggregator.py s3a://insightdemozhi/cc-2019-01/ s3a://insightdemozhi/cc-2018-12/
